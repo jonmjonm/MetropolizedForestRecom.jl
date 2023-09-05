@@ -5,87 +5,40 @@ function run_metropolis_hastings!(
     measure::Measure,
     steps::Union{Int,Tuple{Int,Int}},
     rng::AbstractRNG;
-    writer::Union{Writer, Nothing}=nothing
+    writer::Union{Writer, Nothing}=nothing,
+    output_freq::Int=250
 ) where T <: Real
     precompute_node_tree_counts!(partition)
     check_proposals_weights(proposal)
-    output_freq = 250
-###########
-    partition.extensions[rejection_counter::EXTENSIONS] = Dict{String, Int}()
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_prestep"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_noedge"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_proposingSameDists"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_packnode"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_maxcoarsesplit"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_sharedcoarse"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_excessdistsincoarse"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_snf_connectivity"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_snf_constraint"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_fr2_constraint"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_metropolisHastings1"]=0
-    partition.extensions[rejection_counter::EXTENSIONS]["acceptance_wait"]=0
-    if typeof(proposal) <: Vector
-        for i = 2:length(proposal)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_metropolisHastings"*string(i)]=0
-        end
-    end
-    partition.extensions[rejection_counter::EXTENSIONS]["rejection_maxhammingdistance"]=0
-###########
-    # println("before loop")
-    # @show partition.cross_district_edges
-
+    
     initial_step, final_step = set_step_bounds(steps)
-    # count = 0
-    #@show initial_step
     if initial_step == 0 || initial_step == 1
         output(partition, measure, initial_step, 0, writer)
     end
 
     for step = initial_step:final_step
-        # @show step
-        # count += 1
         proposal!, proposal_index = get_random_proposal(proposal, rng)
         p, update = proposal!(partition, measure, rng)
-        #println("p (original) is ", p)
-        partition.extensions[rejection_counter::EXTENSIONS]["acceptance_wait"] += 1
         if p == 0
-#############
             if mod(step, output_freq) == 0 && step != initial_step
                 output(partition, measure, step, 0, writer)
             end
-#############
             continue
         end
         p *= get_delta_energy(partition, measure, update)
 
-        #println("p is ", p)
         if rand(rng) < p
-            # output(partition, step, count, writer)
-            # count = 0
             update_partition!(partition, update)
             if haskey(partition.extensions, del_dists::EXTENSIONS) 
                 for cd in update[1]
                     partition.extensions[del_dists::EXTENSIONS][cd] += 1
                 end
             end
-#################
-            # @show "accepted and printing", step
-            # output(partition, measure, step, 0, writer)
-            # partition.extensions[rejection_counter::EXTENSIONS]["acceptance_wait"] = 1
-#################
-        else
-            if haskey(partition.extensions, rejection_counter::EXTENSIONS)
-                partition.extensions[rejection_counter::EXTENSIONS]["rejection_metropolisHastings"*string(proposal_index)]+=1
-            end
         end
-#############
         if mod(step, output_freq) == 0 && step != initial_step
             output(partition, measure, step, 0, writer)
-            partition.extensions[rejection_counter::EXTENSIONS]["acceptance_wait"] = 1
         end
-#############
     end
-    # output(partition, final_step, count, writer)
 end
 
 
@@ -141,12 +94,6 @@ function output(
     if haskey(partition.extensions, rejection_counter::EXTENSIONS)
         partition.extensions[rejection_counter::EXTENSIONS]["acceptance_wait"] = 0
     end
-
-    # interior_perimeter = get_cut_edge_perimeter(partition)
-    # cut_edges = get_cut_edge_count(partition)
-    # avg_polsby_popper = sum(get_polsby_popper_score(partition))/num_dists
-    # vra_dists = find_vra_districts(partition, ["G08_PR_D"], ["G08_PR_R"], [1],
-    #                                "VA10_AP_B", "VA10_T", 0.3)
 end
 
 

@@ -48,18 +48,15 @@ function single_node_flip!(
     # @show update
     if !satisfies_constraints(partition, constraints, update)
         # println("not sf const")
-        partition.extensions[rejection_counter::EXTENSIONS]["rejection_snf_constraint"]+=1
         return 0, nothing
     end
 
     if !check_connectivity(partition.graph, from_dist)
         # println("not concect from")
-        partition.extensions[rejection_counter::EXTENSIONS]["rejection_snf_connectivity"]+=1
         return 0, nothing
     end
     if !check_connectivity(partition.graph, to_dist)
         # println("not concect to")
-        partition.extensions[rejection_counter::EXTENSIONS]["rejection_snf_connectivity"]+=1
         return 0, nothing
     end
 

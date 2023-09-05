@@ -432,9 +432,6 @@ function satisfies_constraints(
         else
             s = satisfies_constraint(constraint, partition, changed_districts)
         end
-        # if !s && haskey(partition.extensions, rejection_counter::EXTENSIONS)
-        #     partition.extensions[rejection_counter::EXTENSIONS]["rejection_packnode"]+=1
-        # end
         satisfies_constraints = satisfies_constraints && s
     end
 
@@ -442,9 +439,6 @@ function satisfies_constraints(
         constraint = constraints[PackNodeConstraint]
         s = satisfies_constraint(constraint, graph, district_to_nodes,
                                  num_dists)
-        if !s && haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_packnode"]+=1
-        end
         satisfies_constraints = satisfies_constraints && s
     end
 
@@ -452,9 +446,6 @@ function satisfies_constraints(
         constraint = constraints[MaxCoarseNodeSplits]
         s = satisfies_constraint(constraint, graph, district_to_nodes)
         satisfies_constraints = satisfies_constraints && s
-        if !s && haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_maxcoarsesplit"]+=1
-        end
     end
 
     if satisfies_constraints &&
@@ -462,9 +453,6 @@ function satisfies_constraints(
         constraint = constraints[MaxSharedCoarseNodes]
         s = satisfies_constraint(constraint, partition)
         satisfies_constraints = satisfies_constraints && s
-        if !s && haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_sharedcoarse"]+=1
-        end
     end
 
     if satisfies_constraints && haskey(constraints, AllowedExcessDistsInCoarseNodes)
@@ -472,9 +460,6 @@ function satisfies_constraints(
         s = satisfies_constraint(constraint, graph, district_to_nodes,
                                  num_dists)
         satisfies_constraints = satisfies_constraints && s
-        if !s && haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_excessdistsincoarse"]+=1
-        end
     end
 
     if satisfies_constraints &&
@@ -482,9 +467,6 @@ function satisfies_constraints(
         constraint = constraints[MaxHammingDistance]
         s = satisfies_constraint(constraint, graph, district_to_nodes)
         satisfies_constraints = satisfies_constraints && s
-        if !s && rejection_counter::EXTENSIONS in keys(partition.extensions)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_maxhammingdistance"]+=1
-        end
     end
 
     if proposed_cut != nothing

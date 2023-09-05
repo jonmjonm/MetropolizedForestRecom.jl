@@ -1,5 +1,5 @@
 import Pkg
-Pkg.develop(path="..")
+push!(LOAD_PATH, "..");
 
 using RandomNumbers
 using MultiScaleMapSampler
@@ -21,10 +21,7 @@ graph = MultiLevelGraph(base_graph, ["county", "prec_id"]);
 constraints = initialize_constraints()
 add_constraint!(constraints, PopulationConstraint(graph, num_dists, 0.01))
 add_constraint!(constraints, ConstrainDiscontinuousTraversals(graph))
-add_constraint!(constraints, PackNodeConstraint(graph, num_dists=num_dists))
 add_constraint!(constraints, MaxCoarseNodeSplits(num_dists+1))
-add_constraint!(constraints, MaxSharedCoarseNodes(1)) # ensures can always draw a tree between adjacent districts
-add_constraint!(constraints, AllowedExcessDistsInCoarseNodes(graph, num_dists))
 
 rng = PCG.PCGStateOneseq(UInt64, rng_seed)
 partition = MultiLevelPartition(graph, constraints, num_dists; rng=rng);

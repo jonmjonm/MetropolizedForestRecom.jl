@@ -565,9 +565,6 @@ function forest_recom2!(
 
     if !check_prestep_constraints(subgraph, partition, constraints,
                                  changed_districts)
-        if haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_prestep"]+=1
-        end
         return 0, nothing
     end
 
@@ -580,14 +577,10 @@ function forest_recom2!(
     node_sets_w_pops, edge, prob_edge = proposed_cut
 
     if edge == nothing
-        if haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_noedge"]+=1
-        end
         return 0, nothing
     end
     update = (changed_districts, node_sets_w_pops, edge)
     if !satisfies_constraints(partition, constraints, update)
-        partition.extensions[rejection_counter::EXTENSIONS]["rejection_fr2_constraint"]+=1
         return 0, nothing
     end
     # check hamming distances
@@ -595,22 +588,16 @@ function forest_recom2!(
                                                             changed_districts,
                                                             node_sets_w_pops)
     if hamming == 0
-        if haskey(partition.extensions, rejection_counter::EXTENSIONS)
-            partition.extensions[rejection_counter::EXTENSIONS]["rejection_proposingSameDists"]+=1
-        end
-        # println("rejection on Hamming")
         return 0, nothing
     end
 
     old_tree = sample_merged_tree2(changed_districts, subgraph, partition, 
                                    constraints, rng)
     old_multiscale_cuttable_tree, prob_old_edge = old_tree
-    # println("prob_old_edge ", prob_old_edge)
 
     if prob_old_edge == 0
         println("couldn't draw old tree -- problem")
         @assert false
-        return 0, nothing
     end
 
     prob_of_new_dists = get_prob_of_new_dists(partition, changed_districts,

@@ -5,7 +5,7 @@
     compactness_weight = 0.5
     push_measure!(measure, get_isoperimetric_score, compactness_weight)
 
-    n = 10000
+    n = 50000
 
     observed_districts = get_observed_districts(three_level_graph, constraints, three_level_dists, measure, n)
 
@@ -24,6 +24,7 @@
     c1w = exp(-compactness_weight * (12*12/6 + 12*12/6))
     c2w = exp(-compactness_weight * (12*12/7 + 10*10/5))
     tot = 4 * c1w + 8*c2w
+    @show c1/n/2, 4*c1w/tot
     @test is_close(c1/n/2, 4*c1w/tot) 
     @test is_close(c2/n/2, 8*c2w/tot) 
 end
