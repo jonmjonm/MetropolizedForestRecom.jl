@@ -193,7 +193,7 @@ function get_log_linking_edge_prob_tree_space(
     cross_district_edges = partition.cross_district_edges
     district_to_nodes = partition.district_to_nodes
 
-    log_linking_edge_prob = 0
+    log_linking_edge_prob, internal_log_linking_edge_prob = 0, 0
 
     num_levels = partition.graph.num_levels
 
@@ -217,11 +217,16 @@ function get_log_linking_edge_prob_tree_space(
                 level = maximum(ii for ii = 1:num_levels
                                 if cross_district_edges[di, dj, ii] > 0)
                 choices = cross_district_edges[di, dj, level]
-                log_linking_edge_prob -= log(choices)
+                # @show di, dj, choices
+                if di_nin || dj_nin
+                    log_linking_edge_prob -= log(choices)
+                else 
+                    internal_log_linking_edge_prob -= log(choices)
+                end
             end
         end
     end
-    return log_linking_edge_prob
+    return log_linking_edge_prob, internal_log_linking_edge_prob
 end
 
 """"""
@@ -231,13 +236,10 @@ function get_log_linking_edge_ratio_tree_space(
     changed_districts::Vector{Int},
     node_sets_w_pops,
 )
-    if measure.gamma == 0
-        return 0
-    end
     num_levels = partition.graph.num_levels
 
-    log_l_edge_prob_cur = get_log_linking_edge_prob_tree_space(partition,
-                                                              changed_districts)
+    llepc = get_log_linking_edge_prob_tree_space(partition, changed_districts)
+    log_l_edge_prob_cur, internal_log_l_edge_prob_cur = llepc
 
     old_dists = Dict(cd=>partition.district_to_nodes[cd]
                      for cd in changed_districts)
@@ -247,8 +249,8 @@ function get_log_linking_edge_ratio_tree_space(
     end
     partition.node_to_district = construct_node_map(partition.district_to_nodes)
     set_cross_district_edges!(partition, changed_districts)
-    log_l_edge_prob_proposed = get_log_linking_edge_prob_tree_space(partition,
-                                                              changed_districts)
+    llepp = get_log_linking_edge_prob_tree_space(partition, changed_districts)
+    log_l_edge_prob_proposed, internal_log_l_edge_prob_proposed = llepp
 
     for (od, ons) in old_dists
         partition.district_to_nodes[od] = ons
@@ -256,7 +258,9 @@ function get_log_linking_edge_ratio_tree_space(
     partition.node_to_district = construct_node_map(partition.district_to_nodes)
     set_cross_district_edges!(partition, changed_districts)
 
-    return log_l_edge_prob_proposed - log_l_edge_prob_cur
+    llepr = log_l_edge_prob_proposed - log_l_edge_prob_cur
+    illepr = internal_log_l_edge_prob_proposed - internal_log_l_edge_prob_cur
+    return llepr, illepr
 end
 
 """"""
@@ -606,46 +610,25 @@ function forest_recom2!(
     partialFwdPrpProb = prob_of_dists*prob_edge
     partialBckPrpProb = prob_of_new_dists*prob_old_edge
     p = partialBckPrpProb/partialFwdPrpProb
-    # println("partialBckPrpProb = ", prob_of_new_dists, " * ", prob_old_edge)
-    # println("partialFwdPrpProb = ", prob_of_dists, " * ", prob_edge)
+
+    llep_ratios = get_log_linking_edge_ratio_tree_space(partition, measure,
+                                                    changed_districts,
+                                                    node_sets_w_pops)
+    log_linking_edge_ratio, int_log_linking_edge_ratio = llep_ratios
+    p *= exp(-log_linking_edge_ratio)
 
     if measure.gamma != 0
-        log_linking_edge_ratio = get_log_linking_edge_ratio_tree_space(
-                                                            partition, measure,
-                                                            changed_districts,
-                                                            node_sets_w_pops)
         old_edge = old_multiscale_cuttable_tree[2]
         log_tree_count_ratio = get_log_tree_count_ratio(partition, measure,
                                                         subgraph,
                                                         changed_districts,
                                                         proposed_cut, old_edge)
-        p*=exp(measure.gamma*(log_linking_edge_ratio + log_tree_count_ratio))
-
-        # absorbe into the log_linkin_edge_ratio for now; can do until move to 
-        # weighted graphs
-        # adjacent_edge_ratio = get_log_linking_edge_ratio_adjacent(
-        #                                                     partition, measure,
-        #                                                     changed_districts,
-        #                                                     node_sets_w_pops,
-        #                                                     rng)
-        # p*=exp(measure.gamma*adjacent_edge_ratio)
+        p*=exp(measure.gamma*log_tree_count_ratio)
     end
-
-    # if measure.gamma != 1
-    #     log_linking_edge_ratio = get_log_linking_edge_ratio_partition_space(
-    #                                                         partition, measure,
-    #                                                         changed_districts,
-    #                                                         node_sets_w_pops)
-    #     # println("p_cur = ", p, " and log_linking_edge_ratio = ", log_linking_edge_ratio)
-    #     # println("modifying with linked edge measure on partitions ", p, " x ", exp((1-measure.gamma)*log_linking_edge_ratio))
-    #     p*=exp((1-measure.gamma)*log_linking_edge_ratio)
-    # end
-
-    # println("p and info ", p, " ", log_linking_edge_ratio, " ", log_tree_count_ratio)
-    # P(x'|x)pi(x) = P(x|x')pi(x')
-    # A(x'|x)Q(x'|x)pi(x) = A(x|x')Q(x|x')pi(x')
-    # A(x'|x) = min(1, Q(x|x')pi(x'))
-    #                  Q(x'|x)pi(x))
+    if measure.alpha != 0
+        tot_edge_ratio = log_linking_edge_ratio + int_log_linking_edge_ratio
+        p*=exp(measure.alpha*tot_edge_ratio)
+    end
 
     return p, (changed_districts, node_sets_w_pops, edge)
 end

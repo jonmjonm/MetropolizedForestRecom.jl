@@ -1,16 +1,17 @@
 mutable struct Measure
     gamma::Float64
+    alpha::Float64
     weights::Vector{Float64}
     scores::Vector{Function}
     descriptions::Vector{String}
 end
 
 """"""
-function Measure(gamma::Real)
+function Measure(gamma::Float64, alpha::Float64=gamma)
     scores = Vector{Function}(undef, 0)
     weights = Vector{Float64}(undef, 0)
     descriptions = Vector{String}(undef, 0)
-    return Measure(gamma, weights, scores, descriptions)
+    return Measure(gamma, alpha, weights, scores, descriptions)
 end
 
 """"""
@@ -18,16 +19,23 @@ function log_measure(
     partition::MultiLevelPartition,
     measure::Measure;
     gamma::Union{Real,Nothing}=nothing,
+    alpha::Union{Real,Nothing}=nothing,
     weights::Union{Vector,Nothing}=nothing
 )
     log_p = 0
     if gamma == nothing
         gamma = measure.gamma
     end
+    if alpha == nothing
+        alpha = measure.alpha
+    end
     if gamma != 1
-        log_linking_edges = get_log_linking_edges(partition)
         log_forests = get_log_spanning_forests(partition)
-        log_p += (1-gamma)*(log_forests + log_linking_edges)
+        log_p += (1-gamma)*log_forests
+    end
+    if alpha != 1
+        log_linking_edges = get_log_linking_edges(partition)
+        log_p += (1-alpha)*log_linking_edges
     end
 
     log_p -= get_log_energy(partition, measure, weights=weights)
@@ -63,9 +71,7 @@ function get_delta_energy(
     if length(update) == 1 && typeof(update[1])==MultiLevelPartition
         proposed_partition = update[1]
         score += get_log_energy(partition, measure)
-        #println("score",score)
         score -= get_log_energy(proposed_partition, measure)
-        #println("score",score)
         return exp(score)
     end
 
@@ -85,8 +91,9 @@ function get_delta_energy(
         partition.district_to_nodes[cd] = node_sets_w_pops[ii][1][()]
         partition.dist_populations[cd] = node_sets_w_pops[ii][2]
     end
-    # partition.node_to_district = 
-    # set_cross_district_edges!(partition, changed_districts)
+    partition.node_to_district = construct_node_map(partition.district_to_nodes)
+    set_cross_district_edges!(partition, changed_districts)
+
     for ii = 1:length(measure.weights)
         weight = measure.weights[ii]
         if weight == 0
@@ -99,8 +106,9 @@ function get_delta_energy(
         partition.district_to_nodes[cd] = old_dists[ii]
         partition.dist_populations[cd] = old_pops[ii]
     end
-    # partition.node_to_district = 
-    # set_cross_district_edges!(partition, changed_districts)
+    partition.node_to_district = construct_node_map(partition.district_to_nodes)
+    set_cross_district_edges!(partition, changed_districts)
+
     return exp(score)
 end
 
