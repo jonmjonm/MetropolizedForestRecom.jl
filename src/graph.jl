@@ -90,11 +90,14 @@ function graph_from_json(
     total_pop = sum(populations)
 
     # Generate the base SimpleWeightedGraph.
+    ids = sort(get_attribute_by_key(nodes, "id"))
+    @assert all([ids[ii]==ids[ii+1]-1 for ii = 1:length(ids)-1])
+    one_index_shift = 1-ids[1]
     simple_graph = SimpleWeightedGraph(num_nodes)
     for (index, edges) in enumerate(raw_graph["adjacency"])
         for edge in edges
-            if edge["id"] + 1 > index
-                add_edge!(simple_graph, index, edge["id"] + 1)
+            if edge["id"] + one_index_shift > index
+                add_edge!(simple_graph, index, edge["id"] + one_index_shift)
             end
         end
     end
@@ -103,7 +106,8 @@ function graph_from_json(
 
     # get attributes
     node_attributes = get_node_attributes(nodes, inc_node_data)
-    edge_attributes = get_edge_attributes(raw_graph["adjacency"])
+    edge_attributes = get_edge_attributes(raw_graph["adjacency"], 
+                                          one_index_shift)
 
     for e in edges(simple_graph)
         weight = edge_attributes[Set([src(e), dst(e)])][edge_weights]
@@ -211,13 +215,13 @@ function get_node_attributes(nodes::Array{Any,1}, inc::Set{String}=Set())
 end
 
 """-"""
-function get_edge_attributes(adjacency::Array{Any,1})
+function get_edge_attributes(adjacency::Array{Any,1}, one_index_shift::Int64)
     attributes = Dict{Set{Int}, Dict{String,Any}}()
 
     for (index, edges) in enumerate(adjacency)
         for edge in edges
-            if edge["id"] + 1 > index
-                key = Set([index, edge["id"] + 1])
+            if edge["id"] + one_index_shift > index
+                key = Set([index, edge["id"] + one_index_shift])
                 e = deepcopy(edge)
                 delete!(e, "id")
                 if "connections" ∉ keys(e)
