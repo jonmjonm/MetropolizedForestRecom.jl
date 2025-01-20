@@ -68,7 +68,7 @@ function single_node_flip!(
     prob_move_backward =  prob_edge_back * from_dist_connections
     p = prob_move_backward/prob_move_forward
 
-    if measure.gamma != 1
+    if measure.gamma != 1 || measure.alpha != 1
         log_linking_edge_ratio = get_log_linking_edge_ratio_tree_space(
                                                             partition, measure,
                                                             distpair,
@@ -99,14 +99,15 @@ function single_node_flip!(
                                                         subgraph,
                                                         distpair,
                                                         proposed_cut, old_edge)
-        p*=exp((1-measure.gamma)*(log_linking_edge_ratio + log_tree_count_ratio))
+        p*=exp((1-measure.gamma)*(log_tree_count_ratio))
+        p*=exp((1-measure.alpha)*(log_linking_edge_ratio))
         
         adjacent_edge_ratio = get_log_linking_edge_ratio_adjacent(
                                                             partition, measure,
                                                             distpair, 
                                                             node_sets_w_pops,
                                                             rng)
-        p*=exp((1-measure.gamma)*adjacent_edge_ratio)
+        p*=exp((1-measure.alpha)*adjacent_edge_ratio)
     end
     return p, update
 end
