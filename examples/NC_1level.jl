@@ -1,4 +1,4 @@
-# julia NC_2level.jl
+# julia NC_1level.jl
 import Pkg
 push!(LOAD_PATH, "..");
 
@@ -17,7 +17,13 @@ nodeData = Set(["county", "prec_id", "pop2020cen", "area", "border_length"]);
 base_graph = BaseGraph(pctGraphPath, "pop2020cen", inc_node_data=nodeData,
                        area_col="area", node_border_col="border_length",
                        edge_perimeter_col="length", edge_weights=edge_weights);
-graph = MultiLevelGraph(base_graph, ["county", "prec_id"]);
+for ii = 1:length(base_graph.node_attributes)
+    county = base_graph.node_attributes[ii]["county"]
+    prec_id = base_graph.node_attributes[ii]["prec_id"]
+    name = county*"_"*prec_id
+    base_graph.node_attributes[ii]["county_and_prec_id"] = name
+end
+graph = MultiLevelGraph(base_graph, ["county_and_prec_id"]);
 
 constraints = initialize_constraints()
 add_constraint!(constraints, PopulationConstraint(graph, num_dists, 0.01))
@@ -33,7 +39,7 @@ measure = Measure(gamma)
 # push_measure!(measure, get_isoperimetric_score, 0.45)
 
 output_file_path = joinpath("output", "NC", 
-                            "atlas_2level_gamma"*string(gamma)*".jsonl")
+                            "atlas_1level_gamma"*string(gamma)*".jsonl")
 writer = Writer(measure, constraints, partition, output_file_path)
 push_writer!(writer, get_log_spanning_forests)
 push_writer!(writer, get_isoperimetric_scores)
