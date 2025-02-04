@@ -20,7 +20,7 @@ base_graph = BaseGraph(pctGraphPath, "pop2020cen", inc_node_data=nodeData,
 graph = MultiLevelGraph(base_graph, ["county", "prec_id"]);
 
 constraints = initialize_constraints()
-add_constraint!(constraints, PopulationConstraint(graph, num_dists, 0.01))
+add_constraint!(constraints, PopulationConstraint(graph, num_dists, pop_dev))
 add_constraint!(constraints, ConstrainDiscontinuousTraversals(graph))
 add_constraint!(constraints, MaxCoarseNodeSplits(num_dists+1))
 
