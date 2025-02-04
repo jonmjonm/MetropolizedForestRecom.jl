@@ -27,8 +27,8 @@ graph = MultiLevelGraph(base_graph, ["county_and_prec_id"]);
 
 constraints = initialize_constraints()
 add_constraint!(constraints, PopulationConstraint(graph, num_dists, pop_dev))
-add_constraint!(constraints, ConstrainDiscontinuousTraversals(graph))
-add_constraint!(constraints, MaxCoarseNodeSplits(num_dists+1))
+# add_constraint!(constraints, ConstrainDiscontinuousTraversals(graph))
+# add_constraint!(constraints, MaxCoarseNodeSplits(num_dists+1))
 
 rng = PCG.PCGStateOneseq(UInt64, rng_seed)
 partition = MultiLevelPartition(graph, constraints, num_dists; rng=rng);
