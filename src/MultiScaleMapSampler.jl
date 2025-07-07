@@ -56,6 +56,8 @@ export AbstractGraph,
     get_node_counts,
     build_mcd_score,
     build_get_vra_score,
+    build_get_partisan_margins,
+    build_get_partisan_seats,
 
     # abstract chain
     Chain,
@@ -84,6 +86,7 @@ include("./construct_multi_level_partition.jl")
 include("./balance_multi_level_graph.jl")
 include("./polsby_popper.jl")
 include("./node_counts.jl")
+include("./partisan_lean.jl")
 include("./mcd_ousted_population.jl")
 include("./measure.jl")
 include("./constraints.jl")

@@ -28,7 +28,7 @@ rng = PCG.PCGStateOneseq(UInt64, rng_seed)
 partition = MultiLevelPartition(graph, constraints, num_dists; rng=rng);
 
 proposal = build_forest_recom2(constraints)
-measure = Measure(gamma)
+measure = Measure(gamma, 1.0)
 # to add elements to the measure
 # push_measure!(measure, get_isoperimetric_score, 0.45)
 

@@ -13,14 +13,14 @@ function run_metropolis_hastings!(
     
     initial_step, final_step = set_step_bounds(steps)
     if initial_step == 0 || initial_step == 1
-        output(partition, measure, initial_step, 0, writer)
+        output(partition, measure, initial_step-1, 0, writer)
     end
 
     for step = initial_step:final_step
         proposal!, proposal_index = get_random_proposal(proposal, rng)
         p, update = proposal!(partition, measure, rng)
         if p == 0
-            if mod(step, output_freq) == 0 && step != initial_step
+            if mod(step, output_freq) == 0
                 output(partition, measure, step, 0, writer)
             end
             continue
@@ -35,7 +35,7 @@ function run_metropolis_hastings!(
                 end
             end
         end
-        if mod(step, output_freq) == 0 && step != initial_step
+        if mod(step, output_freq) == 0
             output(partition, measure, step, 0, writer)
         end
     end
