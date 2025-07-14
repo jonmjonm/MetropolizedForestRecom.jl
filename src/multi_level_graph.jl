@@ -1,5 +1,6 @@
 include("./graph.jl")
 
+
 struct MultiLevelGraph #<: AbstractGraph
     num_levels::Int
     levels::Vector{String}
@@ -10,6 +11,8 @@ struct MultiLevelGraph #<: AbstractGraph
     partition_to_ids::Vector{Dict{Tuple{Vararg{String}},Int}}
     graphs_by_level::Vector{BaseGraph}             # the graphs at each level
 end
+
+const Graph = MultiLevelGraph
 
 """"""
 function edge_weight(
@@ -763,3 +766,4 @@ end
 function get_subgraph_population(graph::MultiLevelGraph, nodes::BitSet)::Int
     print("TODO")
 end
+
