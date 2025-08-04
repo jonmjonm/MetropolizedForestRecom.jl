@@ -22,6 +22,17 @@ TranscodingStreams = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 
 [compat]
 AtlasIO = "0.1.0"
+CodecBzip2 = "0.8.5"
+CodecZlib = "0.7.8"
+Combinatorics = "1.0.3"
+Graphs = "1.13.0"
+Hungarian = "0.7.0"
+JSON = "0.21.4"
+JSON3 = "1.14.3"
+MPI = "0.20.23"
+RandomNumbers = "1.6.0"
+SimpleWeightedGraphs = "1.5.0"
+TranscodingStreams = "0.11.3"
 julia = "1"
 
 [extras]
