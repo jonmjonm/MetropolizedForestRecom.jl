@@ -1,7 +1,7 @@
 @testset "three_level test graph, 2 districts, pop=(6,6), gamma=1" begin
     constraints = initialize_constraints()
     add_constraint!(constraints, PopulationConstraint(6,6))
-    measure = Measure(1)
+    measure = Measure(1.0)
     n = 10000
 
     observed_districts = get_observed_districts(three_level_graph, constraints, three_level_dists, measure, n)

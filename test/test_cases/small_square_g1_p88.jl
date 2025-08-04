@@ -2,7 +2,7 @@
     constraints = initialize_constraints()
     add_constraint!(constraints, PopulationConstraint(8,8))
     n = 1000
-    measure = Measure(1)
+    measure = Measure(1.0)
 
     observed_districts = get_observed_districts(small_square_graph, constraints, small_square_dists, measure, n)
 

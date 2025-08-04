@@ -1,7 +1,7 @@
 @testset "three_level test graph, 2 districts, pop=(5,7), gamma=1, compactness_weight=0.5" begin
     constraints = initialize_constraints()
     add_constraint!(constraints, PopulationConstraint(5,7))
-    measure = Measure(1)
+    measure = Measure(1.0)
     compactness_weight = 0.5
     push_measure!(measure, get_isoperimetric_score, compactness_weight)
 

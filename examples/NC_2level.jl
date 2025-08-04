@@ -3,7 +3,7 @@ import Pkg
 push!(LOAD_PATH, "..");
 
 using RandomNumbers
-using MultiScaleMapSampler
+using MetropolizedForestRecom
 
 num_dists = 14
 rng_seed = 454190

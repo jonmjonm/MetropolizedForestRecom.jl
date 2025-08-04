@@ -4,7 +4,7 @@
         constraints = initialize_constraints()
         add_constraint!(constraints, PopulationConstraint(7,9))
     
-        measure = Measure(1)
+        measure = Measure(1.0)
         n = 10000
     
         rng = PCG.PCGStateOneseq(UInt64, 1241909)

@@ -1,11 +1,11 @@
 #=import Pkg
-codepath = joinpath("/Users/gabrielchuang/Documents/Gabriel/Duke/MultiScaleMapSampler") 
+codepath = joinpath("/Users/gabrielchuang/Documents/Gabriel/Duke/MetropolizedForestRecom") 
 Pkg.activate("mergeSplit"; shared=true)
 using Revise
 
 Pkg.develop(path=codepath) =#
 
-using MultiScaleMapSampler
+using MetropolizedForestRecom
 using Test
 using RandomNumbers
 
@@ -100,8 +100,9 @@ tests = [
     "three_level_g1_p57_compactness", #3-level graph, gamma=1, population=(5,7), compactness_weight=0.5 
     "three_level_g1_p57_SNF" # single node flip (very basic check only)
     ]
-
-for t in tests
-    tp = joinpath(testdir, "test_cases/$(t).jl")
-    include(tp)
+@testset verbose = true "Example Graph Tests" begin
+    for t in tests
+        tp = joinpath(testdir, "test_cases/$(t).jl")
+        include(tp)
+    end
 end

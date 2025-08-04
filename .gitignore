@@ -1,8 +1,7 @@
-**Manifest.toml**
+**Manifest.toml
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
-./Manifest.toml
 **/.DS_Store
 **/.ipynb_checkpoints
 scripts

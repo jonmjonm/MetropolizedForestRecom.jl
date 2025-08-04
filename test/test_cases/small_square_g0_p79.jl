@@ -1,7 +1,7 @@
 @testset "small_square test graph, 2 districts, pop=(7,9), gamma=0" begin
     constraints = initialize_constraints()
     add_constraint!(constraints, PopulationConstraint(7,9))
-    measure = Measure(0)
+    measure = Measure(0.0)
     n = 10000
 
     observed_districts = get_observed_districts(small_square_graph, constraints, small_square_dists, measure, n)

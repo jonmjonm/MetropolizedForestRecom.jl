@@ -3,7 +3,7 @@
     constraints = initialize_constraints()
     add_constraint!(constraints, PopulationConstraint(7,9))
 
-    measure = Measure(1)
+    measure = Measure(1.0)
     compactness_weight = 0.5
     push_measure!(measure, get_isoperimetric_score, compactness_weight)
 

@@ -4,7 +4,7 @@ push!(LOAD_PATH, "..");
 Pkg.activate("myEgEnv")
 
 using RandomNumbers
-using MultiScaleMapSampler
+using MetropolizedForestRecom
 
 num_dists = 14
 if length(ARGS) > 1
