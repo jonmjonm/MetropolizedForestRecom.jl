@@ -1,13 +1,22 @@
+# TO run this file execute the following in the examples directory: 
+#
 # julia NC_1level.jl
+#
+# TO instantiate the environment to run this file execute the following in the examples directory: 
+#
+# julia --project=./runMetropolizedRecomEnv -e 'using Pkg; Pkg.instantiate()'
+#
+#
+
 import Pkg
-Pkg.activate("MetropolizedRecom", shared=true)
+Pkg.activate("./runMetropolizedRecomEnv")
 
 using RandomNumbers
 using MetropolizedForestRecom
 
 num_dists = 14
 rng_seed = 110934571
-steps = 10^6
+steps = 1000
 pop_dev = 0.02
 gamma = 0.0 #0 is uniform on forests; 1 is uniform on partitions
 

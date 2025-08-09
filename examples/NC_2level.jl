@@ -1,5 +1,15 @@
+# TO run this file execute the following in the examples directory: 
+#
 # julia NC_2level.jl
+#
+# TO instantiate the environment to run this file execute the following in the examples directory: 
+#
+# julia --project=./runMetropolizedRecomEnv -e 'using Pkg; Pkg.instantiate()'
+#
+
+
 import Pkg
+Pkg.activate("./runMetropolizedRecomEnv")
 
 using RandomNumbers
 using MetropolizedForestRecom
