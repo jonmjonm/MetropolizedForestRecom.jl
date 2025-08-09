@@ -40,6 +40,11 @@ function Writer(
         max_pop = constraints[PopulationConstraint].max_pop
         atlasParam["population bounds"] = [min_pop, max_pop]
     end
+
+    versionNumber = pkgversion(MetropolizedForestRecom)
+    versionString = string(versionNumber)
+    atlasParam["package.version"] = "MetropolizedForestRecom v"*versionString
+    @show atlasParam["package.version"]
     
     # to add to atlasParam
     # other constraints

@@ -1,6 +1,5 @@
 # julia NC_2level.jl
 import Pkg
-push!(LOAD_PATH, "..");
 
 using RandomNumbers
 using MetropolizedForestRecom
@@ -38,5 +37,6 @@ writer = Writer(measure, constraints, partition, output_file_path)
 push_writer!(writer, get_log_spanning_forests)
 push_writer!(writer, get_isoperimetric_scores)
 
+println("startring mcmc")
 run_metropolis_hastings!(partition, proposal, measure, steps, rng,
                          writer=writer, output_freq=10);

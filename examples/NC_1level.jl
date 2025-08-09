@@ -1,18 +1,16 @@
 # julia NC_1level.jl
 import Pkg
-push!(LOAD_PATH, "..");
-Pkg.activate("myEgEnv")
+Pkg.activate("MetropolizedRecom", shared=true)
 
 using RandomNumbers
 using MetropolizedForestRecom
 
 num_dists = 14
-if length(ARGS) > 1
-    rng_seed = parse(Int64, ARGS[1])
-end
+rng_seed = 110934571
+steps = 10^6
 pop_dev = 0.02
 gamma = 0.0 #0 is uniform on forests; 1 is uniform on partitions
-steps = parse(Int64, ARGS[2])
+
 edge_weights= "connections"
 
 pctGraphPath = joinpath("..", "test", "test_graphs", "NC_pct21.json")
@@ -48,5 +46,6 @@ push_writer!(writer, get_log_spanning_trees)
 push_writer!(writer, get_log_spanning_forests)
 push_writer!(writer, get_isoperimetric_scores)
 
+println("startring mcmc")
 run_metropolis_hastings!(partition, proposal, measure, steps, rng,
                          writer=writer, output_freq=1);
