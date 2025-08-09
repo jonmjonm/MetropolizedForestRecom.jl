@@ -10,6 +10,7 @@
 
 import Pkg
 Pkg.activate("./runMetropolizedRecomEnv")
+Pkg.instantiate()
 
 using RandomNumbers
 using MetropolizedForestRecom
