@@ -21,6 +21,8 @@ mutable struct MultiLevelPartition <: AbstractPartition
     proposed_extensions::Dict{EXTENSIONS,Any}
 end
 
+const Partition = MultiLevelPartition
+
 function reset!(
     partition_dst::MultiLevelPartition, 
     partition_src::MultiLevelPartition;

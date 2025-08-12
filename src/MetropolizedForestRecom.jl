@@ -11,8 +11,10 @@ import Combinatorics
 export AbstractGraph,
     BaseGraph,
     MultiLevelGraph,
+    Graph,
     MultiLevelSubGraph,
     MultiLevelPartition,
+    Partition,
     edge_weight,
 
     # proposals
