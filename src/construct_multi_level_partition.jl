@@ -2,11 +2,14 @@
 function attemptConstructPartition(
     graph::MultiLevelGraph,
     constraints::Dict,
-    num_dists::Int, rng::AbstractRNG,
+    num_dists::Int,
+    rng::AbstractRNG,
     max_attempts::Int,
-    district_to_nodes::Vector{Dict{Tuple{Vararg{String}}, Any}} = [],
-    remaining_nodes::Dict{Tuple{Vararg{String}}, Any} = 
-                                              Dict{Tuple{Vararg{String}}, Any}()
+    district_to_nodes::Vector{Dict{Tuple{Vararg{String}}, Any}} =
+        Vector{Dict{Tuple{Vararg{String}}, Any}}(),
+    remaining_nodes::Dict{Tuple{Vararg{String}}, Any} =
+        Dict{Tuple{Vararg{String}}, Any}();
+    initializer::AbstractInitializer = UniformInitializer(),
 )
     if length(remaining_nodes) == 0
         for node in graph.id_to_partitions[1]
@@ -26,10 +29,15 @@ function attemptConstructPartition(
             # try
             construct_cuttable_tree!(multiscale_cuttable_tree, subgraph,
                                      constraints, rng=rng, balance=bal)
-            proposed_cut = cut_edge(multiscale_cuttable_tree, subgraph, rng)
+            proposed_cut = cut_edge(
+                multiscale_cuttable_tree,
+                subgraph,
+                rng;
+                initializer = initializer,
+            )
             node_sets_w_pops, edge, prob_edge = proposed_cut
 
-            if edge == nothing
+            if edge === nothing
                 continue
             end
             # district_to_nodes[district] = node_sets_w_pops[1][1][()]
@@ -93,8 +101,8 @@ function attemptConstructPartition(
     cross_district_edges = Array{Real}(undef,
                                        (num_dists, num_dists, num_levels))
     parent = nothing
-    extensions = Dict{String,Any}()
-    proposed_extensions = Dict{String,Any}()
+    extensions = Dict{EXTENSIONS,Any}()
+    proposed_extensions = Dict{EXTENSIONS,Any}()
 
     partition = MultiLevelPartition(num_dists, cross_district_edges,
                                     node_to_district, district_to_nodes,
@@ -114,9 +122,10 @@ function constructMultiLevelPartition(
     rng::AbstractRNG,
     max_attempts::Int,
     district_to_nodes::Vector{Dict{Tuple{Vararg{String}}, Any}} = 
-                             Vector{Dict{Tuple{Vararg{String}}, Any}}(undef, 0),
-    remaining_nodes::Dict{Tuple{Vararg{String}}, Any} = 
-                                              Dict{Tuple{Vararg{String}}, Any}()
+        Vector{Dict{Tuple{Vararg{String}}, Any}}(undef, 0),
+    remaining_nodes::Dict{Tuple{Vararg{String}}, Any} =
+        Dict{Tuple{Vararg{String}}, Any}();
+    initializer::AbstractInitializer = UniformInitializer()
 )::MultiLevelPartition
 
     d2ns = deepcopy(district_to_nodes)
@@ -124,7 +133,7 @@ function constructMultiLevelPartition(
     partition, success = attemptConstructPartition(multi_level_graph,
                                                    constraints, num_dists,
                                                    rng, max_attempts,
-                                                   d2ns, rem_n)
+                                                   d2ns, rem_n; initializer = initializer)
     for attempt = 1:max_attempts
         if success
             break
@@ -135,14 +144,15 @@ function constructMultiLevelPartition(
                                                        constraints,
                                                        num_dists, rng,
                                                        max_attempts,
-                                                       d2ns, rem_n)
+                                                       d2ns, rem_n; initializer = initializer)
     end
 
     if !success
         throw(
         DomainError(
             success,
-            "Failed to construct a random partition after "*
+            # Changed from random to initial. No hint of uniform random partition.
+            "Failed to construct an initial partition after "*
             string(max_attempts)*" attempts."
             )
         )
@@ -152,17 +162,24 @@ function constructMultiLevelPartition(
 end
 
 """"""
+
 function MultiLevelPartition(
     multi_level_graph::MultiLevelGraph,
     constraints::Dict,
     num_dists::Int;
-    rng::AbstractRNG=PCG.PCGStateOneseq(UInt64),
-    max_attempts::Int=100
+    rng::AbstractRNG = PCG.PCGStateOneseq(UInt64),
+    max_attempts::Int = 100,
+    initializer::AbstractInitializer = UniformInitializer(),
 )::MultiLevelPartition
-        partition = constructMultiLevelPartition(multi_level_graph,
-                                                 constraints, num_dists, rng,
-                                                 max_attempts)
-        return partition
+    partition = constructMultiLevelPartition(
+        multi_level_graph,
+        constraints,
+        num_dists,
+        rng,
+        max_attempts;
+        initializer = initializer,
+    )
+    return partition
 end
 
 """"""
@@ -174,7 +191,8 @@ function MultiLevelPartition(
     max_attempts::Int=100,
     node_key::String="nodes",
     cluster_key::String="clusters",
-    districts_key::String="districts"
+    districts_key::String="districts",
+    initializer::AbstractInitializer = UniformInitializer()
 )::MultiLevelPartition
     num_levels = multi_level_graph.num_levels
     levels = multi_level_graph.levels
@@ -201,7 +219,7 @@ function MultiLevelPartition(
             single_cluster_partition = constructMultiLevelPartition(
                                             multi_level_cluster_graph,
                                             constraints, num_dists, rng,
-                                            max_attempts)
+                                            max_attempts; initializer = initializer)
             n2d = single_cluster_partition.node_to_district
             update_node_to_district = Dict{Tuple{Vararg{String}}, Int}(
                                          n=>d+dist_index_shift for (n,d) in n2d)
@@ -221,7 +239,8 @@ function MultiLevelPartition(
     assignment_col::AbstractString,
     fixed_dists::Vector;
     rng::AbstractRNG=PCG.PCGStateOneseq(UInt64),
-    max_attempts::Int=100
+    max_attempts::Int=100,
+    initializer::AbstractInitializer = UniformInitializer()
 )::MultiLevelPartition
     partition = MultiLevelPartition(multi_level_graph, assignment_col)
     district_to_nodes = [partition.district_to_nodes[d] 
@@ -239,7 +258,8 @@ function MultiLevelPartition(
     num_dists = partition.num_dists
     partition = constructMultiLevelPartition(multi_level_graph, constraints, 
                                              num_dists, rng, max_attempts,
-                                             district_to_nodes, remaining_nodes)
+                                             district_to_nodes, remaining_nodes;
+                                             initializer = initializer)
     return partition
 
 end

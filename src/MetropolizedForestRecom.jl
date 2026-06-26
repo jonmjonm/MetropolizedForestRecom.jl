@@ -22,6 +22,11 @@ export AbstractGraph,
     build_forest_recom2,
     build_forest_recom3,
 
+    # initializers
+    AbstractInitializer,
+    UniformInitializer,
+    BoundaryWeightedInitializer,
+
     # constraints
     initialize_constraints,
     add_constraint!,
@@ -85,6 +90,7 @@ include("./node_set.jl")
 include("./multi_level_subgraph.jl")
 include("./multi_level_partition.jl")
 include("./constraint_types.jl")
+include("./initialization.jl")
 include("./construct_multi_level_partition.jl")
 include("./balance_multi_level_graph.jl")
 include("./polsby_popper.jl")
