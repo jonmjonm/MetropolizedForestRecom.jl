@@ -85,6 +85,39 @@ function AllowedExcessDistsInCoarseNodes(
 end
 
 """"""
+
+function MaxTotalExcessDistsInCoarseNodes(
+    graph::MultiLevelGraph,
+    num_dists::Int,
+    max_total_excess::Int=0;
+    ideal_pop::Real = 0,
+)::MaxTotalExcessDistsInCoarseNodes
+    if ideal_pop == 0
+        ideal_pop = graph.graphs_by_level[1].total_pop / num_dists
+    end
+
+    return MaxTotalExcessDistsInCoarseNodes(max_total_excess, ideal_pop)
+end
+
+""""""
+
+function MaxTotalMissingPackedDistsInCoarseNodes(
+    graph::MultiLevelGraph,
+    num_dists::Int,
+    max_total_missing::Int=0;
+    ideal_pop::Real = 0,
+)::MaxTotalMissingPackedDistsInCoarseNodes
+    if ideal_pop == 0
+        ideal_pop = graph.graphs_by_level[1].total_pop / num_dists
+    end
+
+    return MaxTotalMissingPackedDistsInCoarseNodes(
+        max_total_missing,
+        ideal_pop,
+    )
+end
+
+""""""
 function MaxHammingDistance(
     graph::MultiLevelGraph,
     partition::MultiLevelPartition, #initial partition
@@ -361,6 +394,159 @@ function satisfies_constraint(
 end
 
 """"""
+
+function satisfies_constraint(
+    constraint::MaxTotalExcessDistsInCoarseNodes,
+    graph::MultiLevelGraph,
+    district_to_nodes::AbstractArray{Dict{Tuple{Vararg{String}},Any}, 1},
+    num_dists::Int,
+)::Bool
+    coarse_graph = graph.graphs_by_level[1]
+    districts_in_node = zeros(coarse_graph.num_nodes)
+
+    for node_set in district_to_nodes
+        for node in keys(node_set)
+            node_id = graph.partition_to_ids[1][node]
+            districts_in_node[node_id] += 1
+        end
+    end
+
+    pop_col = coarse_graph.pop_col
+    node_attributes = coarse_graph.node_attributes
+    ideal_pop = constraint.ideal_pop
+
+    if num_dists > length(district_to_nodes)
+        claimed_pop = zeros(coarse_graph.num_nodes)
+
+        for node_set in district_to_nodes
+            for (node, sub_node_set) in node_set
+                node_id = graph.partition_to_ids[1][node]
+
+                if sub_node_set == nothing
+                    sns = Dict{Tuple{Vararg{String}}, Any}(node => nothing)
+                else
+                    sns = sub_node_set
+                end
+
+                lvl_ns = length(collect(keys(sns))[1])
+                node_pop_in_dist = sum_node_data(graph, sns, pop_col, lvl_ns)
+                claimed_pop[node_id] += node_pop_in_dist
+            end
+        end
+
+        for node_id = 1:coarse_graph.num_nodes
+            pop_tot = node_attributes[node_id][pop_col]
+            unclaimed_pop = pop_tot - claimed_pop[node_id]
+            districts_in_node[node_id] += ceil(unclaimed_pop / ideal_pop)
+        end
+    end
+
+    total_excess = 0
+
+    for node_id = 1:coarse_graph.num_nodes
+        node_pop = node_attributes[node_id][pop_col]
+        dists = districts_in_node[node_id]
+
+        if node_pop < ideal_pop
+            total_excess += max(0, dists - 2)
+        else
+            needed_dists = ceil(node_pop / ideal_pop)
+            total_excess += max(0, dists - needed_dists)
+        end
+
+        if total_excess > constraint.max_total_excess
+            return false
+        end
+    end
+
+    return true
+end
+
+""""""
+
+function satisfies_constraint(
+    constraint::MaxTotalMissingPackedDistsInCoarseNodes,
+    graph::MultiLevelGraph,
+    district_to_nodes::AbstractArray{Dict{Tuple{Vararg{String}},Any}, 1},
+    num_dists::Int,
+)::Bool
+    coarse_graph = graph.graphs_by_level[1]
+    packed_dists_in_node = zeros(Int, coarse_graph.num_nodes)
+
+    for node_set in district_to_nodes
+        if length(node_set) == 1
+            node = first(keys(node_set))
+            node_id = graph.partition_to_ids[1][node]
+            packed_dists_in_node[node_id] += 1
+        end
+    end
+
+    pop_col = coarse_graph.pop_col
+    node_attributes = coarse_graph.node_attributes
+    ideal_pop = constraint.ideal_pop
+
+    if num_dists > length(district_to_nodes)
+        claimed_pop = zeros(coarse_graph.num_nodes)
+
+        for node_set in district_to_nodes
+            for (node, sub_node_set) in node_set
+                node_id = graph.partition_to_ids[1][node]
+
+                if sub_node_set == nothing
+                    sns = Dict{Tuple{Vararg{String}}, Any}(node => nothing)
+                else
+                    sns = sub_node_set
+                end
+
+                lvl_ns = length(collect(keys(sns))[1])
+                node_pop_in_dist = sum_node_data(graph, sns, pop_col, lvl_ns)
+                claimed_pop[node_id] += node_pop_in_dist
+            end
+        end
+
+        for node_id = 1:coarse_graph.num_nodes
+            pop_tot = node_attributes[node_id][pop_col]
+            unclaimed_pop = pop_tot - claimed_pop[node_id]
+            packed_dists_in_node[node_id] += floor(unclaimed_pop / ideal_pop)
+        end
+    end
+
+    total_missing = 0
+
+    for node_id = 1:coarse_graph.num_nodes
+        node_pop = node_attributes[node_id][pop_col]
+        required_packed_dists = Int(floor(node_pop / ideal_pop))
+
+        total_missing += max(
+            0,
+            required_packed_dists - packed_dists_in_node[node_id],
+        )
+
+        if total_missing > constraint.max_total_missing
+            return false
+        end
+    end
+
+    return true
+end
+
+""""""
+
+# Convenience method for when num_dists is not provided
+function satisfies_constraint(
+    constraint::MaxTotalMissingPackedDistsInCoarseNodes,
+    graph::MultiLevelGraph,
+    district_to_nodes::AbstractArray{Dict{Tuple{Vararg{String}},Any}, 1},
+)::Bool
+    return satisfies_constraint(
+        constraint,
+        graph,
+        district_to_nodes,
+        length(district_to_nodes),
+    )
+end
+
+""""""
 function satisfies_constraint(
     constraint::MaxHammingDistance,
     graph::MultiLevelGraph,
@@ -462,6 +648,21 @@ function satisfies_constraints(
         satisfies_constraints = satisfies_constraints && s
     end
 
+    if satisfies_constraints && 
+        haskey(constraints, MaxTotalExcessDistsInCoarseNodes)
+        constraint = constraints[MaxTotalExcessDistsInCoarseNodes]
+        s = satisfies_constraint(constraint, graph, district_to_nodes,
+                                 num_dists)
+        satisfies_constraints = satisfies_constraints && s
+    end
+
+    if satisfies_constraints && 
+        haskey(constraints, MaxTotalMissingPackedDistsInCoarseNodes)
+        constraint = constraints[MaxTotalMissingPackedDistsInCoarseNodes]
+        s = satisfies_constraint(constraint, graph, district_to_nodes, num_dists)
+        satisfies_constraints = satisfies_constraints && s
+    end
+
     if satisfies_constraints &&
        haskey(constraints, MaxHammingDistance)
         constraint = constraints[MaxHammingDistance]
@@ -514,6 +715,22 @@ function satisfies_constraints(
         constraint = constraints[AllowedExcessDistsInCoarseNodes]
         if !satisfies_constraint(constraint, graph, district_to_nodes,
                                  num_dists)
+            return false
+        end
+    end
+
+    if haskey(constraints, MaxTotalExcessDistsInCoarseNodes)
+        constraint = constraints[MaxTotalExcessDistsInCoarseNodes]
+        if !satisfies_constraint(constraint, graph, district_to_nodes,
+                                 num_dists)
+            return false
+        end
+    end
+
+    if haskey(constraints, MaxTotalMissingPackedDistsInCoarseNodes)
+        constraint = constraints[MaxTotalMissingPackedDistsInCoarseNodes]
+        if !satisfies_constraint(constraint, graph, district_to_nodes,
+                                num_dists)
             return false
         end
     end

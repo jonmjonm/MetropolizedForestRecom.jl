@@ -38,6 +38,8 @@ export AbstractGraph,
     MaxSharedCoarseNodes,
     MaxSharedNodes,
     AllowedExcessDistsInCoarseNodes,
+    MaxTotalExcessDistsInCoarseNodes,
+    MaxTotalMissingPackedDistsInCoarseNodes,
     MaxHammingDistance,
     
     MultiScaleCuttableTree,
