@@ -98,7 +98,9 @@ tests = [
     "three_level_g0_p57", #3-level graph, gamma=0, population=(5,7)
     "three_level_g1_p57", #3-level graph, gamma=1, population=(5,7)
     "three_level_g1_p57_compactness", #3-level graph, gamma=1, population=(5,7), compactness_weight=0.5 
-    "three_level_g1_p57_SNF" # single node flip (very basic check only)
+    "three_level_g1_p57_SNF", # single node flip (very basic check only)
+    "global_coarse_excess", # test the global coarse-node excess constraint
+    "global_missing_packed_dists", # test the global missing packed-district constraint
     ]
 @testset verbose = true "Example Graph Tests" begin
     for t in tests
