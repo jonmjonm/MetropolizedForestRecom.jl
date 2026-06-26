@@ -1,7 +1,7 @@
 name = "MetropolizedForestRecom"
 uuid = "f1e60ccc-08a2-41db-b5d4-22e81ab96e15"
-version = "0.1.5"
-authors = ["Gregory Herschlag <gjh@math.duke.edu> and contributors"]
+version = "0.1.6"
+authors = ["Gregory Herschlag <gjh@math.duke.edu> , Jonathan Mattingly <jonm@math.duke.edu> and contributors"]
 
 [deps]
 AtlasIO = "d44f5655-1c95-40b4-8e53-9bdb5084f5d6"
