@@ -25,7 +25,7 @@ export AbstractGraph,
     # initializers
     AbstractInitializer,
     UniformInitializer,
-    BoundaryWeightedInitializer,
+    GraphWeightedInitializer,
 
     # constraints
     initialize_constraints,
