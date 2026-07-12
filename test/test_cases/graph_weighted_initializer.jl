@@ -16,7 +16,7 @@
     initializer = GraphWeightedInitializer()
 
     cut_masses = Dict{Tuple,Float64}()
-    checked_edges = 0
+    mismatches = NamedTuple[]
     for level in 1:graph.num_levels
         level_graph = graph.graphs_by_level[level]
         for edge_ids in keys(level_graph.edge_attributes)
@@ -32,12 +32,17 @@
                 initializer,
             )
 
-            @test isapprox(observed_mass, expected_mass)
+            if !isapprox(observed_mass, expected_mass)
+                push!(
+                    mismatches,
+                    (; edge, expected = expected_mass, observed = observed_mass),
+                )
+            end
             cut_masses[edge] = expected_mass
-            checked_edges += 1
         end
     end
-    @test checked_edges > 7_000
+    @test length(cut_masses) > 7_000
+    @test isempty(mismatches)
 
     coarse_graph = graph.graphs_by_level[1]
     non_edge_ids = first(
