@@ -89,6 +89,7 @@ three_level_graph = MultiLevelGraph(three_level_base_graph, ["county", "subcount
 three_level_dists = 2
 
 tests = [
+    "graph_weighted_initializer",
     "small_square_g1_p88", #small square graph, gamma=1, population=(8,8)
     "small_square_g0_p79", #small square graph, gamma=0, population=(7,9)
     "small_square_g1_p79", #small square graph, gamma=1, population=(7,9)

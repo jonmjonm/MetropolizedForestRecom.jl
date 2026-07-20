@@ -642,6 +642,7 @@ end
 function choose_cuttable_edge(
     cuttable_edges::Set,
     multiscale_cuttable_tree::MultiScaleCuttableTree,
+    subgraph::MultiLevelSubGraph,
     rng::AbstractRNG,
     initializer::UniformInitializer,
 )
@@ -656,8 +657,9 @@ end
 function choose_cuttable_edge(
     cuttable_edges::Set,
     multiscale_cuttable_tree::MultiScaleCuttableTree,
+    subgraph::MultiLevelSubGraph,
     rng::AbstractRNG,
-    initializer::BoundaryWeightedInitializer,
+    initializer::GraphWeightedInitializer,
 )
     if length(cuttable_edges) == 0
         return nothing, nothing
@@ -665,19 +667,11 @@ function choose_cuttable_edge(
 
     edges_vec = collect(cuttable_edges)
     weights = [
-        initialization_cut_weight(edge, initializer)
+        initialization_cut_weight(edge, subgraph, initializer)
         for edge in edges_vec
     ]
 
     total_weight = sum(weights)
-
-    if total_weight <= 0
-        return choose_random_cuttable_edge(
-            cuttable_edges,
-            multiscale_cuttable_tree,
-            rng,
-        )
-    end
 
     choice = rand(rng) * total_weight
     cumulative = 0.0
@@ -846,6 +840,7 @@ function cut_edge(
     edge, prob_edge = choose_cuttable_edge(
         cuttable_edges,
         multiscale_cuttable_tree,
+        subgraph,
         rng,
         initializer,
     )
