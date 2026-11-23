@@ -149,7 +149,10 @@ function parse_base_measure(
     m = nextMap(atlas)
     close(atlas)
 
-    base_measure = Measure(gamma)
+    # Measure takes gamma::Float64. AtlasIO 0.1.x reads a whole-number float such as
+    # the stored "gamma":0.0 back as the Int 0 (AtlasIO 0.2 keeps it a Float64), so
+    # convert explicitly; this works with either AtlasIO version.
+    base_measure = Measure(Float64(gamma))
     for (e, w) in zip(energies, energy_weights)
     	if e == "get_isoperimetric_score"
     		push_measure!(base_measure, get_isoperimetric_score, w)
